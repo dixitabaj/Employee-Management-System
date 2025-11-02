@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Employee</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+ <!-- Navbar at the top -->
+<div class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">Employee Manager</div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="employee.html" class="active">Add Employee</a></li>
+            <li class="nav-item"><a href="DisplayEmployee.html">Employee List</a></li>
+        </ul>
+    </div>
+</div>
+
+<!--  Employee Form Section -->
+<div class="container">
+    <h2>Add Employee</h2>
+
+    <div class="form-grid">
+        <!-- Employee ID input with error message -->
+        <div>
+            <span class="error-msg" id="id-error"></span>
+            <label>Employee ID:</label>
+            <input type="text" id="employee_id">
+        </div>
+
+        <!-- Employee Name input -->
+        <div>
+            <span class="error-msg" id="name-error"></span>
+            <label>Employee Name:</label>
+            <input type="text" id="employee_name">
+        </div>
+
+        <!-- Email input -->
+        <div>
+            <span class="error-msg" id="email-error"></span>
+            <label>Email:</label>
+            <input type="email" id="employee_email">
+        </div>
+
+        <!-- Position input -->
+        <div>
+            <span class="error-msg" id="position-error"></span>
+            <label>Position:</label>
+            <input type="text" id="position">
+        </div>
+
+        <!-- Department input -->
+        <div>
+            <span class="error-msg" id="department-error"></span>
+            <label>Department:</label>
+            <input type="text" id="department">
+        </div>
+
+        <!-- Joined Date input -->
+        <div>
+            <span class="error-msg" id="date-error"></span>
+            <label>Joined Date:</label>
+            <input type="date" id="joined_date">
+        </div>
+
+        <!-- Salary input -->
+        <div>
+            <span class="error-msg" id="salary-error"></span>
+            <label>Salary:</label>
+            <input type="number" id="salary" min="0">
+        </div>
+    </div>
+
+    <!--  Employee Skills Section -->
+    <div class="skills-section">
+        <h3>Employee Skills</h3>
+        <div id="skillsContainer">
+            <div class="skill-row">
+                <!-- Skill name input -->
+                <div><input type="text" class="skill" placeholder="Skill"></div>
+
+                <!-- Years of experience input -->
+                <div>
+                    <span class="error-msg" id="years-error"></span>
+                    <input type="number" class="years_of_experience" placeholder="Years" min="0">
+                </div>
+
+                <!-- Skill level selection -->
+                <div>
+                    <select class="level">
+                        <option value="">Select Level</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Expert">Expert</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Button to add employee -->
+    <button type="button" onclick="addEmployee()">+ Add Employee</button>
+    <div id="message"></div>
+</div>
+
+<script>
+    //  Initialize variables
+    let idExists = false; // checks if Employee ID already exists
+    let emailExists = false; // checks if Employee email already exists
+    let hasError= false; // general flag for any validation errors
+    let employee = JSON.parse(localStorage.getItem('employees')) || []; // fetch saved employees from localStorage
+    const nameRegex = /^[A-Za-z\s]+$/; // regex to allow only letters and spaces
+
+    //  Function to add a new employee
+    function addEmployee() {
+        // Reset error flags and messages
+        idExists = false;
+        emailExists = false;
+        hasError = false;
+        document.querySelector('#id-error').textContent = '';
+        document.querySelector('#years-error').textContent = '';
+        document.querySelector('#email-error').textContent = '';
+        document.querySelector('#salary-error').textContent = '';
+
+        // Get form values
+        const employee_id = document.querySelector('#employee_id').value;
+        const employee_name = document.querySelector('#employee_name').value;
+        const employee_email = document.querySelector('#employee_email').value;
+        const position = document.querySelector('#position').value;
+        const department = document.querySelector('#department').value;
+        const joined_date = document.querySelector('#joined_date').value;
+        const salary = document.querySelector('#salary').value;
+
+        // Get first skill inputs
+        const skill = document.querySelector('.skill').value;
+        const years = document.querySelector('.years_of_experience').value;
+        const level = document.querySelector('.level').value;
+
+        //  Check for empty mandatory fields
+        if (!employee_id || !employee_name || !employee_email || !position || !department ) {
+            alert("Please fill in all required fields!");
+            return;
+        }
+
+        //  Check if Employee ID or Email already exists
+        employee.forEach((emp)=>{
+            if (emp.employee_id === employee_id){
+                document.querySelector('#id-error').textContent = 'Employee ID already exists';
+                idExists=true;
+            }
+            if (emp.employee_email === employee_email) {
+                emailExists = true;
+                document.querySelector('#email-error').textContent = 'Employee email already exists';
+            }
+        });
+
+        //  Salary validation
+        if (salary && salary < 0) {
+            document.querySelector('#salary-error').textContent = 'Salary cannot be negative';
+            hasError=true;
+        }
+
+        //  Years of experience validation
+        if (years < 0 || years > 40) {
+            document.querySelector('#years-error').textContent = 'Select suitable years';
+            hasError=true;
+        }
+
+        //  Name and Position validation
+        if (!nameRegex.test(employee_name) || employee_name.match(/[0-9]/)){
+            hasError=true;
+            document.querySelector('#name-error').textContent = 'The name must contain only letters.';
+        }
+        if (!nameRegex.test(position) || position.match(/[0-9]/)){
+            hasError=true;
+            document.querySelector('#position-error').textContent = 'Position must contain only letters.';
+        }
+
+        // If all validations pass, save employee
+        if(employee_id && employee_name && employee_email && position && department && joined_date && salary && !emailExists && !idExists && !hasError){
+            employee.push({employee_id, employee_name, employee_email, position, department, joined_date, salary, skill, years, level});
+            document.querySelector("#message").textContent = "Employee successfully added.";
+            localStorage.setItem('employees', JSON.stringify(employee)); // save to localStorage
+            console.log(localStorage.getItem('employees'));
+        }
+    }
+
+    // Function to delete an employee
+    function deleteEmployee(index) {
+        employee.splice(index, 1); // remove employee at given index
+        localStorage.setItem('employees', JSON.stringify(employee)); // update storage
+        displayEmployees(); // refresh displayed list
+    }
+</script>
+</body>
+</html>
